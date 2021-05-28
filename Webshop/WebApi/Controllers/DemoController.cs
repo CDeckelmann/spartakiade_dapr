@@ -8,9 +8,15 @@ using Dapr.Client;
 
 namespace WebApi.Controllers
 {
-    public class Body
+    public class DemoDTO
     {
         public string Message { get; set; }
+    }
+
+    public class DemoMessage
+    {
+        public string Message { get; set; }
+        public DateTime Timestamp { get; set; }
     }
 
     [ApiController]
@@ -28,26 +34,28 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IList<Tuple<string, DateTime>>> GetMessage([FromServices] DaprClient daprClient)
+        public async Task<IList<DemoMessage>> GetMessage([FromServices] DaprClient daprClient)
         {
-            var state = await daprClient.GetStateEntryAsync<IList<Tuple<string, DateTime>>>(StoreName, StoreKey);
+            var state = await daprClient.GetStateEntryAsync<IList<DemoMessage>>(StoreName, StoreKey);
             return state.Value;
         }
 
         [HttpPost]
-        public async Task SetMessage([FromBody] Body message, [FromServices] DaprClient daprClient)
+        public async Task<ActionResult<DemoMessage>> SetMessage([FromBody] DemoDTO message, [FromServices] DaprClient daprClient)
         {
-            var state = await daprClient.GetStateEntryAsync<IList<Tuple<string, DateTime>>>(StoreName, StoreKey);
+            var state = await daprClient.GetStateEntryAsync<IList<DemoMessage>>(StoreName, StoreKey);
+            var value = new DemoMessage { Message = message.Message, Timestamp = DateTime.UtcNow };
             if (state.Value == null)
             {
-                state.Value = new List<Tuple<string, DateTime>>{ Tuple.Create(message.Message, DateTime.UtcNow) };
+                state.Value = new List<DemoMessage> { value };
             }
             else
             {
-                state.Value.Add(Tuple.Create(message.Message, DateTime.UtcNow));
+                state.Value.Add(value);
             }
 
             await state.SaveAsync();
+            return value;
         }
     }
 }
