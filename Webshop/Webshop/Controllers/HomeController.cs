@@ -8,46 +8,36 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Webshop.Models;
 using System.Net.Http.Json;
+using Dapr.Client;
 
 namespace Webshop.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly HttpClient _httpClient;
-        private readonly string _daprHttpPortEnv;
-        private readonly string _stateStoreUri;
         private readonly string _key = "wert";
+        private readonly string _storeName = "statestore";
 
-        public HomeController(ILogger<HomeController> logger, HttpClient httpClient)
+
+        public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
-            this._httpClient = httpClient;
-            _daprHttpPortEnv = Environment.GetEnvironmentVariable("DAPR_HTTP_PORT");
-            _stateStoreUri = $"http://localhost:{_daprHttpPortEnv}/v1.0/state/statestore";
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index([FromServices] DaprClient daprClient)
         {
-            var response = await _httpClient.GetAsync($"{_stateStoreUri}/{_key}");
-            var wert = await response.Content.ReadAsStringAsync();
+            var state = await daprClient.GetStateEntryAsync<string>(_storeName, _key);
 
-            return View(new StateViewModel { Wert = wert });
+            return View(new StateViewModel { Wert = state.Value });
         }
 
         [HttpPost]
-        public async Task<IActionResult> Save(StateViewModel model)
+        public async Task<IActionResult> Save(StateViewModel model, [FromServices] DaprClient daprClient)
         {
+            var state = await daprClient.GetStateEntryAsync<string>(_storeName, _key);
 
-            var states = new List<KeyValuePair<string, object>>
-            {
-              new KeyValuePair<string, object>(_key, model.Wert)
-            };
-
-            var response = await _httpClient.PostAsync(
-              _stateStoreUri,
-              JsonContent.Create(states)
-            );
+            state.Value = model.Wert;
+            await state.SaveAsync();
 
             return RedirectToAction("Index", new { Wert = model.Wert});
         }
