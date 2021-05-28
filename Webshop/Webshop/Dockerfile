@@ -7,9 +7,10 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:3.1 AS build
 WORKDIR /src
-COPY ["Webshop/Webshop.csproj", "Webshop/"]
+COPY . Webshop/
+#COPY ["Webshop/Webshop.csproj", "Webshop/"]
 RUN dotnet restore "Webshop/Webshop.csproj"
-COPY . .
+#COPY . .
 WORKDIR "/src/Webshop"
 RUN dotnet build "Webshop.csproj" -c Release -o /app/build
 
