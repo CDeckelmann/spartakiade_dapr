@@ -1,4 +1,4 @@
-
+https://github.com/SaschaDittmann/dapr-on-azure-demos/
 
 cd E:\Git3\Weiterbildung\Spartakiade2021\spartakiade_dapr\Webshop
 dapr run --app-id nodeapp --app-port 5001 --dapr-http-port 3500 dotnet run
@@ -50,3 +50,5 @@ docker push daprcontainerreg.azurecr.io/webshop:latest
 
 
 kubectl create secret generic azure-cosmosdb --from-literal="url=$cosmosdbUrl" --from-literal="masterKey=$cosmosdbMasterKey"
+
+kubectl apply -f cosmosdb.yaml
