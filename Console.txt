@@ -1,0 +1,52 @@
+
+
+cd E:\Git3\Weiterbildung\Spartakiade2021\spartakiade_dapr\Webshop
+dapr run --app-id nodeapp --app-port 5001 --dapr-http-port 3500 dotnet run
+
+dapr run --app-id myapp --dapr-http-port 3500
+
+curl -X POST -H "Content-Type: application/json" -d '[{ "key": "name", "value": "Bruce Wayne"}]' http://localhost:3500/v1.0/state/statestore
+
+curl http://localhost:3500/v1.0/state/statestore/name
+
+PS C:\Users\christoph.deckelmann> docker exec -it dapr_redis redis-cli
+127.0.0.1:6379> keys *
+1) "myapp||name"
+127.0.0.1:6379> hgetall "myapp||name"
+1) "data"
+2) "\"Bruce Wayne\""
+3) "version"
+4) "1"
+127.0.0.1:6379> exit
+PS C:\Users\christoph.deckelmann>
+
+
+
+PS C:\Users\christoph.deckelmann> docker exec -it dapr_redis redis-cli
+127.0.0.1:6379> keys *
+1) "nodeapp||wert"
+2) "myapp||name"
+127.0.0.1:6379> hgetall "nodeapp||wert"
+1) "data"
+2) "\"test\""
+3) "version"
+4) "1"
+127.0.0.1:6379>
+
+
+docker login daprcontainerreg.azurecr.io
+
+e/zHyG4rHUU0X8UELaWzHNVYED/fJ50D
+
+docker tag mcr.microsoft.com/oss/nginx/nginx:1.15.5-alpine myregistry.azurecr.io/samples/nginx
+
+docker push myregistry.azurecr.io/webshop
+
+docker tag webshop daprcontainerreg.azurecr.io/webshop:dev
+
+docker tag webshop daprcontainerreg.azurecr.io/webshop:latest
+
+docker push daprcontainerreg.azurecr.io/webshop:latest
+
+
+kubectl create secret generic azure-cosmosdb --from-literal="url=$cosmosdbUrl" --from-literal="masterKey=$cosmosdbMasterKey"
